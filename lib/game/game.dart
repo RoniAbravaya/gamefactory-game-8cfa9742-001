@@ -1,92 +1,84 @@
-import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 
 enum GameState { playing, paused, gameOver, levelComplete }
 
 class TestHaikuModelPlatformer01Game extends FlameGame with TapDetector {
-  GameState gameState = GameState.playing;
-  int currentLevel = 1;
+  late GameState gameState;
   int score = 0;
+  int lives = 3;
+  int currentLevel = 1;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
+    gameState = GameState.playing;
+    camera.viewport = FixedResolutionViewport(Vector2(360, 640));
     await loadLevel(currentLevel);
   }
 
-  /// Loads the specified level and initializes necessary components.
   Future<void> loadLevel(int levelNumber) async {
     // Placeholder for level loading logic
-    // This should include loading level design, player, obstacles, and collectibles
-    // For now, it just resets the score and gameState
-    score = 0;
-    gameState = GameState.playing;
-    // TODO: Add actual level loading logic here
+    // This should include setting up the level based on the levelNumber,
+    // including platforms, enemies, and any special items or conditions.
   }
 
-  @override
-  void onTap() {
-    // Placeholder for tap jump mechanic
-    // This should make the player jump if the game state is playing
-    if (gameState == GameState.playing) {
-      // TODO: Implement tap jump mechanic
+  void updateScore(int points) {
+    score += points;
+    // Update UI overlay with new score
+  }
+
+  void loseLife() {
+    lives -= 1;
+    if (lives <= 0) {
+      gameState = GameState.gameOver;
+      // Handle game over logic, such as showing game over overlay
+    } else {
+      // Reset player to start of level or checkpoint
     }
   }
 
-  /// Pauses the game.
+  void levelComplete() {
+    gameState = GameState.levelComplete;
+    // Handle level completion logic, such as loading the next level
+    // and updating any relevant UI or game state.
+  }
+
+  @override
+  void onTapDown(TapDownInfo info) {
+    super.onTapDown(info);
+    if (gameState == GameState.playing) {
+      // Handle tap jump mechanic
+    }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (gameState == GameState.playing) {
+      // Game update logic, such as collision detection and game progress.
+    }
+  }
+
   void pauseGame() {
     gameState = GameState.paused;
     pauseEngine();
+    // Show pause overlay
   }
 
-  /// Resumes the game from a paused state.
   void resumeGame() {
     gameState = GameState.playing;
     resumeEngine();
+    // Hide pause overlay
   }
 
-  /// Ends the game and sets the state to game over.
-  void gameOver() {
-    gameState = GameState.gameOver;
-    // TODO: Implement game over logic, such as showing game over screen
-  }
-
-  /// Completes the current level and progresses to the next one.
-  void completeLevel() {
-    gameState = GameState.levelComplete;
-    currentLevel++;
-    // TODO: Implement level completion logic, such as showing level complete screen
-    // and loading the next level if available
-  }
-
-  /// Increments the score by a specified amount.
-  void increaseScore(int amount) {
-    score += amount;
-    // TODO: Update score display
-  }
-
-  /// Integrates with analytics to track key events.
-  void trackEvent(String eventName) {
-    // Placeholder for analytics integration
-    // TODO: Implement actual analytics event tracking
-  }
-
-  /// Shows an ad and rewards the player upon completion.
-  void showRewardedAd() {
-    // Placeholder for ad integration
-    // TODO: Implement actual ad showing and reward handling
-  }
-
-  /// Saves the game state to storage.
-  void saveGame() {
-    // Placeholder for storage integration
-    // TODO: Implement actual game state saving
-  }
-
-  /// Loads the game state from storage.
-  void loadGame() {
-    // Placeholder for storage integration
-    // TODO: Implement actual game state loading
+  void restartGame() {
+    gameState = GameState.playing;
+    score = 0;
+    lives = 3;
+    currentLevel = 1;
+    // Reload the initial level and reset game state
+    loadLevel(currentLevel);
   }
 }

@@ -1,54 +1,50 @@
 import 'package:flame/components.dart';
-import 'package:flame/geometry.dart';
-import 'package:flame_audio/flame_audio.dart';
+import 'package:flame/collisions.dart';
+import 'package:flutter/material.dart';
 
-/// A component for collectible items in a platformer game.
-///
-/// It includes collision detection, a score value, optional animation,
-/// and a sound effect upon collection.
-class Collectible extends SpriteComponent with Hitbox, Collidable {
-  final int scoreValue;
-  final String collectionSound;
-  bool _collected = false;
+class Collectible extends PositionComponent with CollisionCallbacks {
+  final int value;
+  double _floatOffset = 0;
 
-  /// Creates a new Collectible item.
-  ///
-  /// [scoreValue] specifies the score the player receives upon collecting this item.
-  /// [collectionSound] is the path to the sound effect that plays upon collection.
   Collectible({
-    required Sprite sprite,
     required Vector2 position,
-    required Vector2 size,
-    this.scoreValue = 100,
-    this.collectionSound = 'collectible_pickup.mp3',
-  }) : super(sprite: sprite, position: position, size: size) {
-    addShape(HitboxRectangle());
+    this.value = 10,
+  }) : super(
+          position: position,
+          size: Vector2(30, 30),
+          anchor: Anchor.center,
+        );
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    add(CircleHitbox());
   }
 
   @override
-  Future<void>? onLoad() async {
-    try {
-      await super.onLoad();
-      // Optionally, load and prepare animations here if needed.
-    } catch (e) {
-      print('Error loading Collectible: $e');
-    }
-  }
-
-  /// Handles the logic when this collectible is collected by the player.
-  void collect() {
-    if (!_collected) {
-      _collected = true;
-      FlameAudio.play(collectionSound);
+  void update(double dt) {
+    super.update(dt);
+    
+    position.y += 80 * dt;
+    
+    _floatOffset += dt * 5;
+    position.x += (0.5 * ((_floatOffset % 2) < 1 ? 1 : -1));
+    
+    if (position.y > 900) {
       removeFromParent();
-      // Additional logic for updating the game state (e.g., increment score) goes here.
     }
   }
 
   @override
-  void onCollision(Set<Vector2> intersectionPoints, Collidable other) {
-    super.onCollision(intersectionPoints, other);
-    // Assuming the player is the only other collidable entity.
-    collect();
+  void render(Canvas canvas) {
+    canvas.drawCircle(
+      Offset(size.x / 2, size.y / 2),
+      size.x / 2,
+      Paint()..color = Colors.amber,
+    );
+  }
+
+  void collect() {
+    removeFromParent();
   }
 }
